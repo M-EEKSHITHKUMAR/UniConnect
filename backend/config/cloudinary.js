@@ -1,6 +1,6 @@
-const cloudinary=require('cloudinary').v2;
-const {CloudinaryStorage} =reuire('multer-storage-cloudinary');
-const multer=require('multer');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const multer = require('multer');
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -17,9 +17,9 @@ const issueStorage = new CloudinaryStorage({
   },
 });
 
-const uploadIssueImage=multer({
-    storage:issueStorage,
-    limits: { fileSize: 5 * 1024 * 1024 },
-})
+const uploadIssueImage = multer({
+  storage: issueStorage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+});
 
-module.exports={cloudinary, uploadIssueImage};
+module.exports = { cloudinary, uploadIssueImage };
