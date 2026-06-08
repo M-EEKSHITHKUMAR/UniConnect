@@ -46,7 +46,7 @@ const IssueCard = ({ issue }) => {
     month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
   })
 
-  const imageUrl = issue.image ? `${import.meta.env.VITE_API_URL}${issue.image}` : null
+  const imageUrl = issue.image || null;
 
   return (
     <div style={{

@@ -1,10 +1,11 @@
 const Issue=require("../models/Issue.js");
 const Comment=require("../models/Comment.js");
+const { cloudinary } = require('../config/cloudinary');
 
 const createIssue=async(req,res)=>{
     try{
         const {title,description}=req.body;
-        const image=req.file?`/uploads/${req.file.filename}`:'';
+        const image=req.file?req.file.path:'';
         const issue=await Issue.create({
             title,
             description,
@@ -64,9 +65,7 @@ const upvoteIssue = async (req, res) => {
   }
 };
 
-// @desc    Update issue status (admin only)
-// @route   PUT /api/issues/:id/status
-// @access  Private/Admin
+
 const updateIssueStatus = async (req, res) => {
   try {
     const { status } = req.body;
@@ -88,9 +87,7 @@ const updateIssueStatus = async (req, res) => {
   }
 };
 
-// @desc    Delete issue (admin only, resolved issues)
-// @route   DELETE /api/issues/:id
-// @access  Private/Admin
+
 const deleteIssue = async (req, res) => {
   try {
     const issue = await Issue.findById(req.params.id);
@@ -100,6 +97,18 @@ const deleteIssue = async (req, res) => {
       return res.status(400).json({ message: 'Only resolved issues can be deleted' });
     }
 
+    if (issue.image) {
+      try {
+        // Extract public_id from cloudinary URL
+        const urlParts = issue.image.split('/');
+        const filename = urlParts[urlParts.length - 1].split('.')[0];
+        const folder = urlParts[urlParts.length - 2];
+        const publicId = `${folder}/${filename}`;
+        await cloudinary.uploader.destroy(publicId);
+      } catch (err) {
+        console.log('Cloudinary delete warning:', err.message);
+      }
+    }
     await Comment.deleteMany({ issue: issue._id });
     await issue.deleteOne();
     res.json({ message: 'Issue deleted successfully' });
@@ -108,9 +117,6 @@ const deleteIssue = async (req, res) => {
   }
 };
 
-// @desc    Get trending issues (top 10 upvoted, pending, last 24h)
-// @route   GET /api/issues/trending
-// @access  Public
 const getTrendingIssues = async (req, res) => {
   try {
     const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
