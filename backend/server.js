@@ -12,7 +12,7 @@ const app=express();
 
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://uniconnect.vercel.app', // replace with your actual vercel URL
+   process.env.FRONTEND_URL,
 ];
 app.use(cors({
   origin: function (origin, callback) {
