@@ -2,6 +2,15 @@ const User = require('../models/User');
 const Otp = require('../models/Otp');
 const jwt = require('jsonwebtoken');
 const { sendOtpEmail } = require('../services/emailService');
+const {
+  storeOtp,
+  getOtp,
+  deleteOtp,
+  markEmailVerified,
+  isEmailVerified,
+  clearVerifiedStatus,
+  checkOtpRateLimit,
+} = require('../services/otpService');
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '7d' });
@@ -20,14 +29,18 @@ const sendOtp = async (req, res) => {
       return res.status(400).json({ message: 'Email already registered' });
     }
 
-   
-    await Otp.deleteMany({ email });
+    await checkOtpRateLimit(email);
+    const otp=generateOtp();
 
-    const otp = generateOtp();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-
-    await Otp.create({ email, otp, expiresAt });
+    await storeOtp(email, otp);
     await sendOtpEmail(email, otp);
+    // await Otp.deleteMany({ email });
+
+    // const otp = generateOtp();
+    // const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    // await Otp.create({ email, otp, expiresAt });
+    // await sendOtpEmail(email, otp);
 
     res.json({ message: 'OTP sent successfully to your email' });
   } catch (error) {
@@ -43,25 +56,32 @@ const verifyOtp = async (req, res) => {
     if (!email || !otp) {
       return res.status(400).json({ message: 'Email and OTP are required' });
     }
-
-    const otpRecord = await Otp.findOne({ email });
-
-    if (!otpRecord) {
-      return res.status(400).json({ message: 'OTP not found. Please request a new one.' });
+    const storedOtp=await getOtp(email);
+    if(!storedOtp){
+      return res.status(400).json({message:'OTP Expired. Please Request a New One'});
     }
-
-    if (new Date() > otpRecord.expiresAt) {
-      await Otp.deleteMany({ email });
-      return res.status(400).json({ message: 'OTP has expired. Please request a new one.' });
-    }
-
-    if (otpRecord.otp !== otp.trim()) {
+    if (storedOtp !== otp.trim()) {
       return res.status(400).json({ message: 'Invalid OTP. Please try again.' });
     }
+    await deleteOtp(email);
+    await markEmailVerified(email);
+    //const otpRecord = await Otp.findOne({ email });
 
-    otpRecord.verified = true;
-    await otpRecord.save();
+    // if (!otpRecord) {
+    //   return res.status(400).json({ message: 'OTP not found. Please request a new one.' });
+    // }
 
+    // if (new Date() > otpRecord.expiresAt) {
+    //   await Otp.deleteMany({ email });
+    //   return res.status(400).json({ message: 'OTP has expired. Please request a new one.' });
+    // }
+
+    // if (otpRecord.otp !== otp.trim()) {
+    //   return res.status(400).json({ message: 'Invalid OTP. Please try again.' });
+    // }
+
+    // otpRecord.verified = true;
+    // await otpRecord.save();
     res.json({ message: 'Email verified successfully', verified: true });
   } catch (error) {
     console.error('Verify OTP error:', error);
@@ -77,11 +97,14 @@ const register = async (req, res) => {
       return res.status(400).json({ message: 'Name, email and password are required' });
     }
 
-    const otpRecord = await Otp.findOne({ email, verified: true });
-    if (!otpRecord) {
+    // const otpRecord = await Otp.findOne({ email, verified: true });
+    // if (!otpRecord) {
+    //   return res.status(400).json({ message: 'Email not verified. Please verify your email first.' });
+    // }
+    const verified =await isEmailVerified(email);
+    if (!verified) {
       return res.status(400).json({ message: 'Email not verified. Please verify your email first.' });
     }
-
     const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(400).json({ message: 'User already exists' });
@@ -90,7 +113,8 @@ const register = async (req, res) => {
     const user = new User({ name, email, password, department, bio });
     await user.save();
 
-    await Otp.deleteMany({ email });
+    //await Otp.deleteMany({ email });
+    await clearVerifiedStatus(email);
 
     res.status(201).json({
       _id: user._id,

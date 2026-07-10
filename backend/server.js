@@ -4,9 +4,11 @@ const cors=require('cors');
 const path=require('path');
 const connectDB=require('./config/db');
 const { errorHandler, notFound } = require('./middleware/errorMiddleware');
+const { connectRedis } = require('./config/redis');
 
 dotenv.config();
 connectDB();
+connectRedis();
 
 const app=express();
 
@@ -14,6 +16,15 @@ const allowedOrigins = [
   'http://localhost:3000',
    process.env.FRONTEND_URL,
 ];
+
+app.use((req, res, next) => {
+  res.setTimeout(300000, () => {
+    console.log('Request timed out.');
+    res.status(504).send('Gateway Timeout');
+  });
+  next();
+});
+
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
