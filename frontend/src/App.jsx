@@ -11,6 +11,8 @@ import HomePage from './pages/HomePage';
 import TrendingPage from './pages/TrendingPage';
 import ClubsPage from './pages/ClubsPage';
 import AlumniPage from './pages/AlumniPage';
+import EventsPage from './pages/EventsPage';
+import EventDetailPage from './pages/EventDetailPage';
 
 function App() {
   return (
@@ -56,6 +58,8 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/events" element={<ProtectedRoute><Navbar /><EventsPage /></ProtectedRoute>} />
+          <Route path="/events/:eventId" element={<ProtectedRoute><Navbar /><EventDetailPage /></ProtectedRoute>} /> 
           <Route path='*' element={<Navigate to='/' replace />} />
         </Routes>
       </BrowserRouter>

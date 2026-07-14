@@ -1,6 +1,7 @@
 const Issue=require("../models/Issue.js");
 const Comment=require("../models/Comment.js");
 const { cloudinary } = require('../config/cloudinary');
+const { generateIssueEmbedding } = require("../services/embeddingService.js");
 
 const createIssue=async(req,res)=>{
     try{
@@ -12,6 +13,18 @@ const createIssue=async(req,res)=>{
             image,
             author: req.user._id,
         });
+        generateIssueEmbedding(title, description)
+          .then(async (embedding) => {
+            if (embedding) {
+              await Issue.findByIdAndUpdate(issue._id, { embedding });
+              console.log(`Embedding stored for issue: ${issue._id}`);
+            }
+          })
+          .catch((err) => {
+            console.error('Embedding storage failed (non-critical):', err.message);
+          });
+
+
         const populated=await issue.populate('author','name email department profileImage');
         res.status(201).json(populated);
     }catch(error){

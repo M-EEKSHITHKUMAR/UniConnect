@@ -4,7 +4,8 @@ import { useDispatch, useSelector } from 'react-redux'
 import { logout } from '../features/auth/authSlice'
 import {
   FiHome, FiTrendingUp, FiUsers, FiLogOut,
-  FiMenu, FiX, FiUser
+  FiMenu, FiX, FiUser,
+  FiCalendar
 } from 'react-icons/fi'
 import { MdOutlineSchool } from 'react-icons/md'
 import toast from 'react-hot-toast'
@@ -27,6 +28,7 @@ const Navbar = () => {
     { path: '/trending', label: 'Trending', icon: <FiTrendingUp /> },
     { path: '/clubs', label: 'Clubs', icon: <FiUsers /> },
     { path: '/alumni', label: 'Alumni', icon: <MdOutlineSchool /> },
+    { path: '/events', label: 'Events', icon: <FiCalendar /> },
   ]
 
   const isActive = (path) => location.pathname === path

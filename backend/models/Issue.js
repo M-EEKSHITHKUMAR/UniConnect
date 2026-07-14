@@ -8,7 +8,7 @@ const issueSchema=new mongoose.Schema(
             trim:true,
             maxLength:200,
         },
-        description: {
+    description: {
       type: String,
       required: [true, 'Description is required'],
       trim: true,
@@ -33,6 +33,11 @@ const issueSchema=new mongoose.Schema(
             ref:'User',
         },
     ],
+    embedding:{
+      type:[Number],
+      default:[],
+      select:false,//dont return in norml queries
+    },
     },
     {timestamps: true}
 );

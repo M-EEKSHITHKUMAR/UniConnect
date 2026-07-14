@@ -12,6 +12,7 @@ const {
   getTrendingIssues,
 } = require('../controllers/issueController');
 const { addComment, getComments } = require('../controllers/commentController');
+const {checkSimilarity }=require('../controllers/issueSimilarityController');
 const { protect, adminOnly } = require('../middleware/authMiddleware');
 const { uploadIssueImage } = require('../config/cloudinary');
 
@@ -35,14 +36,13 @@ const { uploadIssueImage } = require('../config/cloudinary');
 // });
 
 router.get('/trending', getTrendingIssues);
+router.post('/check-similarity', protect, checkSimilarity);
 router.get('/', getAllIssues);
 router.post('/', protect, uploadIssueImage.single('image'), createIssue);
 router.get('/:id', getIssueById);
 router.put('/:id/upvote', protect, upvoteIssue);
 router.put('/:id/status', protect, adminOnly, updateIssueStatus);
 router.delete('/:id', protect, adminOnly, deleteIssue);
-
-// Comment routes
 router.post('/:id/comments', protect, addComment);
 router.get('/:id/comments', getComments);
 

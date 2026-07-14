@@ -39,6 +39,20 @@ export const upvoteIssue = createAsyncThunk('issues/upvote', async (issueId, { r
   }
 });
 
+export const checkIssueSimilarity = createAsyncThunk(
+  'issues/checkSimilarity',
+  async ({ title, description }, { rejectWithValue }) => {
+    try {
+      const { data } = await API.post('/api/issues/check-similarity', { title, description })
+      return data
+    } catch (err) {
+      console.error(err.message);
+      // On error — return no similar issues, never block user
+      return rejectWithValue({ hasSimilar: false, similarIssues: [] });
+    }
+  }
+)
+
 export const updateStatus = createAsyncThunk('issues/updateStatus', async ({ id, status }, { rejectWithValue }) => {
   try {
     const { data } = await API.put(`/api/issues/${id}/status`, { status });
@@ -65,9 +79,18 @@ const issueSlice = createSlice({
     loading: false,
     trendingLoading: false,
     error: null,
+
+    hasSimilar: false,
+    similarIssues: [],
+    similarityLoading: false
   },
   reducers: {
     clearIssueError: (state) => { state.error = null; },
+    clearSimilarity:(state)=>{
+      state.similarIssues=[]
+      state.hasSimilar=false
+      state.similarityLoading=false
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -79,6 +102,17 @@ const issueSlice = createSlice({
       .addCase(fetchTrending.rejected, (state) => { state.trendingLoading = false; })
       .addCase(createIssue.fulfilled, (state, action) => {
         state.issues.unshift(action.payload);
+      })
+      .addCase(checkIssueSimilarity.pending, (state) => { state.similarityLoading = true })
+      .addCase(checkIssueSimilarity.fulfilled, (state, action) => {
+        state.similarityLoading = false
+        state.hasSimilar = action.payload.hasSimilar
+        state.similarIssues = action.payload.similarIssues || []
+      })
+      .addCase(checkIssueSimilarity.rejected, (state) => {
+        state.similarityLoading = false
+        state.hasSimilar = false
+        state.similarIssues = []
       })
       .addCase(upvoteIssue.fulfilled, (state, action) => {
         const idx = state.issues.findIndex((i) => i._id === action.payload._id);
@@ -96,5 +130,5 @@ const issueSlice = createSlice({
   },
 });
 
-export const { clearIssueError } = issueSlice.actions;
+export const { clearIssueError, clearSimilarity } = issueSlice.actions;
 export default issueSlice.reducer;

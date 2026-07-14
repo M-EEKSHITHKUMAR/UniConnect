@@ -3,6 +3,7 @@ import authReducer from '../features/auth/authSlice';
 import issueReducer from '../features/issues/issueSlice';
 import clubReducer from '../features/clubs/clubSlice';
 import alumniReducer from '../features/alumni/alumniSlice';
+import eventReducer from '../features/events/eventSlice'
 
 const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ const store = configureStore({
     issues: issueReducer,
     clubs: clubReducer,
     alumni: alumniReducer,
+    events: eventReducer,
   },
 });
 

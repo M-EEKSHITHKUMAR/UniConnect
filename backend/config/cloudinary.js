@@ -17,9 +17,24 @@ const issueStorage = new CloudinaryStorage({
   },
 });
 
+const eventStorage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'uniconnect/events',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+    transformation: [{ width: 1200, quality: 'auto', crop: 'limit' }],
+  },
+});
+
+
 const uploadIssueImage = multer({
   storage: issueStorage,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
 });
 
-module.exports = { cloudinary, uploadIssueImage };
+const uploadEventPoster = multer({
+  storage: eventStorage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
+
+module.exports = { cloudinary, uploadIssueImage, uploadEventPoster };

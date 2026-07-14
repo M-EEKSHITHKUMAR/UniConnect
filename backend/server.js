@@ -44,6 +44,7 @@ app.use('/api/auth',require('./routes/authRoutes'));
 app.use('/api/issues', require('./routes/issueRoutes'));
 app.use('/api/clubs', require('./routes/clubRoutes'));
 app.use('/api/alumni', require('./routes/alumniRoutes'));
+app.use('/api/events',require('./routes/eventRoutes'));
 
 app.get('/', (req, res) => res.json({ message: 'UniConnect API is running' }));
 
